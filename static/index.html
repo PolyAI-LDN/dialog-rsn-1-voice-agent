@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dialog-RSN-1 Voice Agent</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <span class="brand">Dialog-RSN-1 Voice Agent</span>
+    <span class="status"><span id="status-dot" class="dot idle"></span><span id="status-text">Ready</span></span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Talk to a voice agent built on Dialog-RSN-1</h1>
+      <p>One model hears you, decides when you've finished, and writes the reply. Cartesia speaks it while it's still being written.</p>
+      <ol class="pipeline" aria-label="How audio flows">
+        <li><b>Microphone</b><span>24 kHz PCM16</span></li>
+        <li class="rsn"><b>Dialog-RSN-1</b><span>listens, takes the turn, replies</span></li>
+        <li><b>Cartesia</b><span>streams speech</span></li>
+        <li><b>Speakers</b><span>reports what played</span></li>
+      </ol>
+    </section>
+
+    <section class="panel">
+      <h2>Configuration</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Audio</h3>
+          <label for="mic">Microphone</label>
+          <select id="mic"><option value="">System default</option></select>
+          <p class="hint">Echo cancellation, noise suppression and auto gain are on. Headphones still work best.</p>
+        </div>
+        <div class="card">
+          <h3>Agent</h3>
+          <label for="voice">Voice</label>
+          <select id="voice"></select>
+          <label for="turn-taking">Turn-taking</label>
+          <select id="turn-taking"></select>
+          <p class="hint">No thresholds or timeouts to tune. The model decides when you've finished, and this picks one more line for its instructions.</p>
+        </div>
+      </div>
+      <details class="card">
+        <summary>Instructions</summary>
+        <textarea id="instructions" rows="7" spellcheck="false"></textarea>
+        <p class="hint">Sent once as <code>session.instructions</code> when the conversation starts.</p>
+      </details>
+    </section>
+
+    <section class="panel controls">
+      <div class="buttons">
+        <button id="start-mic" class="primary">Start conversation</button>
+        <button id="start-sample">Play the sample caller</button>
+        <button id="stop" disabled>Stop</button>
+      </div>
+      <p id="instruction" class="hint">The sample caller asks a question, then talks over the answer, so you can see a barge-in without a microphone.</p>
+      <div id="toast" class="toast" hidden></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Conversation</h2>
+        <div class="stats">
+          <span title="From the moment the caller stopped speaking">Median, from end of speech:</span>
+          <span class="stat">turn <b id="stat-turn">–</b></span>
+          <span class="stat">first text <b id="stat-text">–</b></span>
+          <span class="stat">first audio <b id="stat-audio">–</b></span>
+        </div>
+      </div>
+      <div id="conversation" class="conversation">
+        <p class="empty">The conversation shows up here once you start talking.</p>
+      </div>
+      <div class="buttons small">
+        <button id="clear">Clear</button>
+        <button id="export">Export conversation</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Events</h2>
+        <label class="check"><input type="checkbox" id="quiet" checked> Hide text deltas and playback reports</label>
+      </div>
+      <pre id="events" class="events"></pre>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,11 @@
+[project]
+name = "dialog-rsn-1-voice-agent"
+version = "0.1.0"
+description = "A browser voice agent on Dialog-RSN-1: one model hears the caller, takes the turn and writes the reply, Cartesia speaks it"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "websockets>=14",
+    "python-dotenv>=1.0",
+]
