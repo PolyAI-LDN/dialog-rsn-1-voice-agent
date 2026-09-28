@@ -328,7 +328,7 @@ function drawTiming(turn) {
   if (!row) {
     row = document.createElement("div");
     row.className = "timing";
-    row.title = "Measured from the moment the caller stopped speaking";
+    row.title = "Measured from audio_end_ms, where Dialog-RSN-1 marks the end of speech, about 0.5 s after the last word";
     turn.agentEl.append(row);
   }
   row.textContent = parts.join(" · ");

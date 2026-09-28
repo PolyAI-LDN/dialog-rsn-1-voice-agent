@@ -20,20 +20,24 @@ browser speakers ◀──PCM── app.py ◀──PCM── Cartesia ◀──
 ```text
 $ uv run probe.py
 (caller speaking)
-  turn confirmed 83 ms after the caller stopped
-  first text  389 ms after the caller stopped
-  first audio 718 ms after the caller stopped
+  turn confirmed 83 ms after audio_end_ms
+  first text  389 ms after audio_end_ms
+  first audio 718 ms after audio_end_ms
 Caller: Hi, I'm going to Lisbon for a long weekend next month. What should I make sure I see?
 Agent:  In Lisbon, you should definitely see the Belém Tower and the Jerónimos Monastery. Don't miss the historic Alfama district either. What kind of activities are you looking for?
 (caller speaking)
 (interrupted after 5534 ms, 3826 ms dropped)
   heard: "In Lisbon, you should definitely see the Belém Tower and the Jerónimos Monastery. Don't miss the"
-  turn confirmed 108 ms after the caller stopped
-  first text  390 ms after the caller stopped
-  first audio 678 ms after the caller stopped
+  turn confirmed 108 ms after audio_end_ms
+  first text  390 ms after audio_end_ms
+  first audio 678 ms after audio_end_ms
 Caller: Sorry, quick question - is it easy to get around on foot?
 Agent:  Yes, the city center is very walkable, especially the historic areas like Alfama and Baixa. What other spots are you hoping to visit?
 ```
+
+The probe and the page time each turn from `audio_end_ms`, where Dialog-RSN-1 marks the end of
+speech. That mark sits about half a second after the caller's last word, so the caller waits
+that much longer than the numbers show.
 
 ## Run it
 

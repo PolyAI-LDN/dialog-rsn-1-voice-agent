@@ -6,6 +6,9 @@
 The probe does what the page does. It streams a WAV as the caller in real time, pretends
 to play the agent's audio at real speed, and sends the same playback progress back.
 The sample asks a question and then talks over the answer, so you see a barge-in too.
+
+Times count from audio_end_ms, the point in the caller's audio where Dialog-RSN-1 marks the
+end of speech. That mark sits about half a second after the caller's last word.
 """
 
 from __future__ import annotations
@@ -89,21 +92,22 @@ async def main(args) -> None:
                     was_silent = player.started_at is None
                     player.add(msg)
                     if was_silent and turn_end:
-                        print(f"  first audio {ms(turn_end)} after the caller stopped")
+                        print(f"  first audio {ms(turn_end)} after audio_end_ms")
                     continue
                 ev = json.loads(msg)
                 kind = ev["type"]
                 if kind == "input_audio_buffer.speech_started":
                     print("(caller speaking)")
                 elif kind == "input_audio_buffer.speech_stopped":
+                    # Dialog-RSN-1's end-of-speech mark, about 0.5 s after the last word.
                     turn_end, first_text = t0 + ev["audio_end_ms"] / 1000, None
-                    print(f"  turn confirmed {ms(turn_end)} after the caller stopped")
+                    print(f"  turn confirmed {ms(turn_end)} after audio_end_ms")
                 elif kind == "conversation.item.input_audio_transcription.completed":
                     print(f"Caller: {ev['transcript'].strip()}")
                 elif kind == "response.output_text.delta" and first_text is None:
                     first_text = time.monotonic()
                     if turn_end:
-                        print(f"  first text  {ms(turn_end)} after the caller stopped")
+                        print(f"  first text  {ms(turn_end)} after audio_end_ms")
                 elif kind == "response.output_text.done":
                     print(f"Agent:  {ev['text'].strip()}")
                 elif kind == "agent.audio_start":
