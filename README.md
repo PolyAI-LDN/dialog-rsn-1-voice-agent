@@ -99,7 +99,7 @@ Everything the page offers lives in `config.py`:
   `idle_timeout_ms` is rejected with `unsupported_parameter`.
 - **Instructions.** Editable on the page before you start.
 
-`.env` also takes `CARTESIA_MODEL` (default `sonic-3.6`), `DIALOGUE_URL` (default us-1
+`.env` also takes `CARTESIA_MODEL` (default `sonic-3.6`), `DIALOG_REALTIME_URL` (default us-1
 production) and `PORT` (default 3000).
 
 ## Troubleshooting
