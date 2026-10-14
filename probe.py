@@ -125,6 +125,8 @@ async def main(args) -> None:
                     print(f"  heard: {ev['event']['spoken_text']!r}")
                 elif kind in ("error", "agent.error"):
                     print(f"[{kind}] {ev.get('error') or ev.get('message')}")
+                    if kind == "agent.error":
+                        return   # the server has ended the call
                 elif kind == "response.done" and ev["response"]["status"] not in ("completed", "cancelled"):
                     print(f"[response {ev['response']['status']}] {ev['response'].get('status_details')}")
 
@@ -132,9 +134,12 @@ async def main(args) -> None:
             return f"{(time.monotonic() - since) * 1000:.0f} ms"
 
         tasks = [asyncio.create_task(t) for t in (send_audio(), report(), receive())]
-        await tasks[0]
-        for task in tasks[1:]:
+        # Done when the whole clip has been sent, or sooner if the server ends the call.
+        await asyncio.wait([tasks[0], tasks[2]], return_when=asyncio.FIRST_COMPLETED)
+        for task in tasks:
             task.cancel()
+        if not tasks[0].done():
+            raise SystemExit(1)
 
 
 if __name__ == "__main__":
