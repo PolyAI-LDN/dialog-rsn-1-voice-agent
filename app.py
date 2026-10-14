@@ -100,10 +100,10 @@ class Call:
 
         try:
             self.rsn = await websockets.connect(
-                config.DIALOGUE_URL, max_size=None,
+                config.DIALOG_REALTIME_URL, max_size=None,
                 additional_headers={"X-API-KEY": config.DIALOG_API_KEY})
         except (websockets.InvalidStatus, OSError) as exc:
-            return await self.fail("Dialog-RSN-1 refused the connection", exc, "DIALOG_API_KEY and DIALOGUE_URL")
+            return await self.fail("Dialog-RSN-1 refused the connection", exc, "DIALOG_API_KEY and DIALOG_REALTIME_URL")
         self.tts = CartesiaTTS(config.CARTESIA_API_KEY, config.CARTESIA_MODEL, voice,
                                config.SAMPLE_RATE, self.on_tts_audio, self.on_tts_done)
         try:
