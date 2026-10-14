@@ -101,9 +101,9 @@ class Call:
         try:
             self.rsn = await websockets.connect(
                 config.DIALOG_REALTIME_URL, max_size=None,
-                additional_headers={"X-API-KEY": config.DIALOG_API_KEY})
+                additional_headers={"X-API-KEY": config.POLY_API_KEY})
         except (websockets.InvalidStatus, OSError) as exc:
-            return await self.fail("Dialog-RSN-1 refused the connection", exc, "DIALOG_API_KEY and DIALOG_REALTIME_URL")
+            return await self.fail("Dialog-RSN-1 refused the connection", exc, "POLY_API_KEY and DIALOG_REALTIME_URL")
         self.tts = CartesiaTTS(config.CARTESIA_API_KEY, config.CARTESIA_MODEL, voice,
                                config.SAMPLE_RATE, self.on_tts_audio, self.on_tts_done)
         try:
@@ -260,7 +260,7 @@ class Call:
 def main() -> None:
     import uvicorn
 
-    missing = [name for name in ("DIALOG_API_KEY", "CARTESIA_API_KEY") if not getattr(config, name)]
+    missing = [name for name in ("POLY_API_KEY", "CARTESIA_API_KEY") if not getattr(config, name)]
     if missing:
         raise SystemExit(f"{' and '.join(missing)} not set. Copy .env.example to .env and fill it in.")
     log.info("open http://%s:%d", config.HOST, config.PORT)
