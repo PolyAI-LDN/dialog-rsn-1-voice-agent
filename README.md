@@ -20,19 +20,20 @@ browser speakers ◀──PCM── app.py ◀──PCM── Cartesia ◀──
 ```text
 $ uv run probe.py
 (caller speaking)
-  turn confirmed 83 ms after audio_end_ms
-  first text  389 ms after audio_end_ms
-  first audio 718 ms after audio_end_ms
+  turn confirmed 133 ms after audio_end_ms
+  first text  378 ms after audio_end_ms
+  first audio 563 ms after audio_end_ms
 Caller: Hi, I'm going to Lisbon for a long weekend next month. What should I make sure I see?
-Agent:  In Lisbon, you should definitely see the Belém Tower and the Jerónimos Monastery. Don't miss the historic Alfama district either. What kind of activities are you looking for?
+Agent:  In Lisbon, you should definitely see the Belém Tower and the Jerónimos Monastery. The Alfama neighborhood is also great for exploring, and LX Factory is a fun spot for shopping and food. Do any of those catch your eye?
 (caller speaking)
-(interrupted after 5534 ms, 3826 ms dropped)
-  heard: "In Lisbon, you should definitely see the Belém Tower and the Jerónimos Monastery. Don't miss the"
-  turn confirmed 108 ms after audio_end_ms
-  first text  390 ms after audio_end_ms
-  first audio 678 ms after audio_end_ms
+(interrupted after 5676 ms, 6564 ms dropped)
+  heard: 'In Lisbon, you should definitely see the Belém Tower and the Jerónimos Monastery. The Alfama neighborhood'
+  turn confirmed 155 ms after audio_end_ms
+  first text  356 ms after audio_end_ms
+  first audio 516 ms after audio_end_ms
 Caller: Sorry, quick question - is it easy to get around on foot?
-Agent:  Yes, the city center is very walkable, especially the historic areas like Alfama and Baixa. What other spots are you hoping to visit?
+Agent:  Yes, the city center is very walkable, though it can be quite hilly. Do you need any other tips for getting around?
+  heard: 'Yes, the city center is very walkable, though it can be quite hilly. Do you need any other tips for getting around?'
 ```
 
 The probe and the page time each turn from `audio_end_ms`, where Dialog-RSN-1 marks the end of
@@ -94,8 +95,8 @@ Everything the page offers lives in `config.py`:
 - **Voice.** Five Cartesia voices. Add any voice id from your Cartesia library.
 - **Turn-taking.** Balanced, patient or brisk. Each one appends a line to the instructions,
   because Dialog-RSN-1 decides turn ends itself and takes direction in plain language. The
-  realtime schema's `silence_duration_ms`, `threshold` and friends are rejected with
-  `unsupported_parameter`.
+  realtime schema's `silence_duration_ms` and `threshold` are accepted and ignored, and
+  `idle_timeout_ms` is rejected with `unsupported_parameter`.
 - **Instructions.** Editable on the page before you start.
 
 `.env` also takes `CARTESIA_MODEL` (default `sonic-3.6`), `DIALOGUE_URL` (default us-1
