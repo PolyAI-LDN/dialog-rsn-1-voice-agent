@@ -8,7 +8,7 @@ load_dotenv()
 
 # Dialog-RSN-1: hears the caller, decides when the turn is over, writes the reply.
 DIALOG_REALTIME_URL = os.environ.get("DIALOG_REALTIME_URL", "wss://api.studio.poly.ai/v1/realtime")
-DIALOG_API_KEY = os.environ.get("DIALOG_API_KEY")
+POLY_API_KEY = os.environ.get("POLY_API_KEY")
 
 # Cartesia: speaks the reply while it's still being written.
 CARTESIA_API_KEY = os.environ.get("CARTESIA_API_KEY")
