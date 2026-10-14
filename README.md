@@ -45,7 +45,7 @@ You need Python 3.12, [uv](https://docs.astral.sh/uv/), a Dialog-RSN-1 workspace
 and a Cartesia API key. Cartesia's free tier works.
 
 ```bash
-cp .env.example .env    # add DIALOGUE_API_KEY and CARTESIA_API_KEY
+cp .env.example .env    # add DIALOG_API_KEY and CARTESIA_API_KEY
 uv sync
 uv run app.py           # then open http://127.0.0.1:3000
 ```
@@ -105,7 +105,7 @@ production) and `PORT` (default 3000).
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| "Dialog-RSN-1 refused the connection (HTTP 401)" | The key is missing, or it's a personal access token | Use a workspace API key from Agent Studio in `DIALOGUE_API_KEY` |
+| "Dialog-RSN-1 refused the connection (HTTP 401)" | The key is missing, or it's a personal access token | Use a workspace API key from Agent Studio in `DIALOG_API_KEY` |
 | "Cartesia refused the connection" | `CARTESIA_API_KEY` is missing or wrong | Check the key in the Cartesia dashboard |
 | The agent keeps interrupting itself | The mic hears the speakers | Wear headphones |
 | Text appears but there's no sound | The tab is muted, or the browser blocked audio | Unmute the tab, click Start again |
