@@ -1,8 +1,16 @@
 # Dialog-RSN-1 voice agent
 
+Companion code for [Build a browser voice agent with Cartesia](https://docs.poly.ai/dialog-rsn-1/guides/voice-agent-cartesia).
+
 A voice agent you talk to in the browser. Dialog-RSN-1 hears the caller, decides when
 they've finished, and streams the reply as text. [Cartesia](https://cartesia.ai) speaks
 that reply while it's still being written.
+
+By default, Dialog-RSN-1 speaks each reply itself, in a Cartesia voice on the server. That's
+the simpler route if you don't need your own text-to-speech. This agent sets
+`output_modalities: ["text"]` because it runs its own Cartesia stream in `app.py` and sends
+its own playback reports. See
+[Text or spoken replies](https://docs.poly.ai/dialog-rsn-1/reference#text-or-spoken-replies).
 
 It has the usual shape of a browser voice agent: a Python server, a browser page, a microphone
 picker and a live event log. The difference is the pipeline. A chained pipeline transcribes the
