@@ -11,6 +11,7 @@ const QUIET = /^(response\.output_text\.delta|conversation\.item\.input_audio_tr
 let settings = null;
 let rate = 24000;
 let run = null; // the live conversation, or null when idle
+let starting = false;
 let turns = []; // one per caller turn: {itemId, caller, callerEl, agent, agentEl, end, confirmed, firstText, firstAudio}
 
 // ---- Setup --------------------------------------------------------------------------
@@ -51,63 +52,68 @@ async function listMicrophones() {
 // ---- A conversation -----------------------------------------------------------------
 
 async function start(mode) {
-  if (run) return;
-  hideToast();
-  const ctx = new AudioContext({ sampleRate: rate });
-  await ctx.resume(); // while the click still counts as a user gesture
-  await Promise.all([ctx.audioWorklet.addModule("/static/capture-worklet.js"), ctx.audioWorklet.addModule("/static/player-worklet.js")]);
-  const capture = new AudioWorkletNode(ctx, "capture");
-  const player = new AudioWorkletNode(ctx, "player", { outputChannelCount: [1] });
-  player.connect(ctx.destination);
-
-  let source;
-  let stream = null;
+  if (run || starting) return;
+  starting = true;
   try {
-    if (mode === "mic") {
-      const id = $("mic").value;
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          deviceId: id ? { exact: id } : undefined,
-          channelCount: 1,
-          echoCancellation: true, // keeps the agent's own voice out of the microphone
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      });
-      source = ctx.createMediaStreamSource(stream);
-      listMicrophones();
-    } else {
-      const clip = await fetch("/static/sample-caller.wav").then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b));
-      source = ctx.createBufferSource();
-      source.buffer = clip;
-      source.connect(ctx.destination); // so you hear the caller too
+    hideToast();
+    const ctx = new AudioContext({ sampleRate: rate });
+    await ctx.resume(); // while the click still counts as a user gesture
+    await Promise.all([ctx.audioWorklet.addModule("/static/capture-worklet.js"), ctx.audioWorklet.addModule("/static/player-worklet.js")]);
+    const capture = new AudioWorkletNode(ctx, "capture");
+    const player = new AudioWorkletNode(ctx, "player", { outputChannelCount: [1] });
+    player.connect(ctx.destination);
+
+    let source;
+    let stream = null;
+    try {
+      if (mode === "mic") {
+        const id = $("mic").value;
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            deviceId: id ? { exact: id } : undefined,
+            channelCount: 1,
+            echoCancellation: true, // keeps the agent's own voice out of the microphone
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+        source = ctx.createMediaStreamSource(stream);
+        listMicrophones();
+      } else {
+        const clip = await fetch("/static/sample-caller.wav").then((r) => r.arrayBuffer()).then((b) => ctx.decodeAudioData(b));
+        source = ctx.createBufferSource();
+        source.buffer = clip;
+        source.connect(ctx.destination); // so you hear the caller too
+      }
+    } catch (err) {
+      ctx.close();
+      showToast(mode === "mic" ? `Microphone unavailable: ${err.message}` : `Couldn't load the sample: ${err.message}`);
+      return;
     }
-  } catch (err) {
-    ctx.close();
-    showToast(mode === "mic" ? `Microphone unavailable: ${err.message}` : `Couldn't load the sample: ${err.message}`);
-    return;
+
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    const ws = new WebSocket(`${proto}//${location.host}/agent`);
+    ws.binaryType = "arraybuffer";
+    run = { mode, ctx, ws, stream, source, capture, player, frame: new Int16Array(rate / 10), fill: 0, t0: null, audioId: null, responding: false, playing: false, live: false };
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({
+        type: "start",
+        voice: $("voice").value,
+        turn_taking: $("turn-taking").value,
+        instructions: $("instructions").value.trim(),
+      }));
+    };
+    ws.onmessage = (e) => (typeof e.data === "string" ? onMessage(JSON.parse(e.data)) : onAudio(e.data));
+    ws.onclose = () => run?.ws === ws && stop("The server closed the conversation.");
+    capture.port.onmessage = (e) => onCaptured(new Int16Array(e.data));
+    player.port.onmessage = (e) => onPlayer(e.data);
+
+    setControls(true);
+    setStatus("thinking", "Connecting…");
+  } finally {
+    starting = false;
   }
-
-  const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  const ws = new WebSocket(`${proto}//${location.host}/agent`);
-  ws.binaryType = "arraybuffer";
-  run = { mode, ctx, ws, stream, source, capture, player, frame: new Int16Array(rate / 10), fill: 0, t0: null, audioId: null, responding: false, playing: false, live: false };
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      type: "start",
-      voice: $("voice").value,
-      turn_taking: $("turn-taking").value,
-      instructions: $("instructions").value.trim(),
-    }));
-  };
-  ws.onmessage = (e) => (typeof e.data === "string" ? onMessage(JSON.parse(e.data)) : onAudio(e.data));
-  ws.onclose = () => run?.ws === ws && stop("The server closed the conversation.");
-  capture.port.onmessage = (e) => onCaptured(new Int16Array(e.data));
-  player.port.onmessage = (e) => onPlayer(e.data);
-
-  setControls(true);
-  setStatus("thinking", "Connecting…");
 }
 
 // Audio starts flowing once the session is configured, so every frame is read at the
