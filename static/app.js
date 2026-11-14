@@ -94,6 +94,7 @@ async function start(mode) {
   run = { mode, ctx, ws, stream, source, capture, player, frame: new Int16Array(rate / 10), fill: 0, t0: null, audioId: null, responding: false, playing: false, live: false };
 
   ws.onopen = () => {
+    if (run?.ws !== ws) return;
     ws.send(JSON.stringify({
       type: "start",
       voice: $("voice").value,
@@ -101,10 +102,18 @@ async function start(mode) {
       instructions: $("instructions").value.trim(),
     }));
   };
-  ws.onmessage = (e) => (typeof e.data === "string" ? onMessage(JSON.parse(e.data)) : onAudio(e.data));
+  ws.onmessage = (e) => {
+    if (run?.ws !== ws) return;
+    if (typeof e.data === "string") onMessage(JSON.parse(e.data));
+    else onAudio(e.data);
+  };
   ws.onclose = () => run?.ws === ws && stop("The server closed the conversation.");
-  capture.port.onmessage = (e) => onCaptured(new Int16Array(e.data));
-  player.port.onmessage = (e) => onPlayer(e.data);
+  capture.port.onmessage = (e) => {
+    if (run?.ws === ws) onCaptured(new Int16Array(e.data));
+  };
+  player.port.onmessage = (e) => {
+    if (run?.ws === ws) onPlayer(e.data);
+  };
 
   setControls(true);
   setStatus("thinking", "Connecting…");
@@ -113,10 +122,13 @@ async function start(mode) {
 // Audio starts flowing once the session is configured, so every frame is read at the
 // right sample rate and the timing below counts from the first one.
 function begin() {
+  const r = run;
   run.live = true;
   run.source.connect(run.capture);
   if (run.mode === "sample") {
-    run.source.onended = () => finishWhenQuiet();
+    run.source.onended = () => {
+      if (run === r) finishWhenQuiet();
+    };
     run.source.start();
     setStatus("listening", "Sample caller speaking");
   } else {
