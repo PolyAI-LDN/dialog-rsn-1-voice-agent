@@ -140,6 +140,12 @@ function stop(reason) {
 // After the sample ends, keep sending silence until the last reply has played out.
 function finishWhenQuiet() {
   const r = run;
+  if (r.fill > 0) {
+    r.frame.fill(0, r.fill);
+    sendFrame(r.frame);
+    r.frame = new Int16Array(rate / 10);
+    r.fill = 0;
+  }
   const ended = Date.now();
   const tick = setInterval(() => {
     if (run !== r) return clearInterval(tick);
